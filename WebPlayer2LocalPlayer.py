@@ -16,6 +16,67 @@ FORBIDDEN_EXT = ["gif"]
 FORBIDDEN_REGEXP = ["rdr.php.*", ".*edgecastcdn.*"]
 FORBIDDEN_URL = "http://localhost/forbidden/"
 OPEN_CMD = "open -a VLC '%s'"
+DOWNLOAD_CMD = "open -a 'Folx 3' '%s'"
+
+
+class UrlDialog(QtWidgets.QDialog):
+    def __init__(self, *args, **kwargs):
+        super(UrlDialog, self).__init__(*args, **kwargs)
+
+        self.setWindowTitle('Enter URL')
+        self.setFixedSize(200, 100)
+
+        self.url = QtWidgets.QLineEdit()
+        self.url.setText('http://')
+        self.url.setFocus()
+
+        self.button = QtWidgets.QPushButton("Open url")
+        self.button.clicked.connect(self.openUrl)
+
+        layout = QtWidgets.QVBoxLayout()
+        layout.addWidget(self.url)
+        layout.addWidget(self.button)
+
+        self.setLayout(layout)
+
+    def openUrl(self):
+        self.close()
+
+
+class ActionDialog(QtWidgets.QDialog):
+    def __init__(self, *args, **kwargs):
+        self._url = kwargs.pop('url')
+        super(ActionDialog, self).__init__(*args, **kwargs)
+
+        self.setWindowTitle('Action')
+        self.setFixedSize(200, 130)
+
+        self.url = QtWidgets.QLineEdit()
+        self.url.setText(self._url)
+
+        self.download = QtWidgets.QPushButton("Download")
+        self.download.clicked.connect(self.downloadFile)
+
+        self.open = QtWidgets.QPushButton("Open")
+        self.open.clicked.connect(self.openFile)
+
+        layout = QtWidgets.QVBoxLayout()
+        layout.addWidget(self.url)
+        layout.addWidget(self.open)
+        layout.addWidget(self.download)
+
+        self.setLayout(layout)
+
+    def doAction(self, cmd):
+        os.system(cmd)
+        self.close()
+        sys.exit(0)
+
+    def openFile(self):
+        self.doAction(OPEN_CMD % self._url)
+
+    def downloadFile(self):
+        self.doAction(DOWNLOAD_CMD % self._url)
 
 
 class QNetworkAccessManager(QtNetwork.QNetworkAccessManager):
@@ -59,13 +120,13 @@ class QNetworkAccessManager(QtNetwork.QNetworkAccessManager):
 
     @staticmethod
     def openPlayer(url):
-        print("Url for open: %s" % url)
-        os.system(OPEN_CMD % url)
+        print("Url: %s" % url)
+        dialog = ActionDialog(url=url)
+        dialog.exec_()
 
     @staticmethod
     def catchError(eid):
-        # print('Error %d:' % eid)
-        pass
+        sys.stderr.write("Error %d\n" % eid)
 
 
 class MainWindow(QtWebKitWidgets.QWebView):
@@ -83,8 +144,9 @@ class MainWindow(QtWebKitWidgets.QWebView):
     @staticmethod
     def getUrl():
         if len(sys.argv) != 2:
-            print("Enter url as secondary argument")
-            sys.exit(-1)
+            dialog = UrlDialog()
+            dialog.exec_()
+            return dialog.url.text()
         return sys.argv[1]
 
     @staticmethod
