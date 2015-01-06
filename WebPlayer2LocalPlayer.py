@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import urlparse
+import signal
 import sys
 import os
 import re
@@ -96,7 +97,12 @@ class MainWindow(QtWebKitWidgets.QWebView):
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication([])
+    app.setApplicationName(APP_NAME)
+
     main = MainWindow()
     main.setSettings()
     main.show()
-    sys.exit(app.exec_())
+
+    if signal.signal(signal.SIGINT, signal.SIG_DFL):
+        sys.exit(app.exec_())
+    app.exec_()
