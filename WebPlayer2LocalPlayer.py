@@ -54,12 +54,12 @@ class QNetworkAccessManager(QtNetwork.QNetworkAccessManager):
 
     @staticmethod
     def openPlayer(url):
-        print "Url for open: ", url
+        print("Url for open: %s" % url)
         os.system(OPEN_CMD % url)
 
     @staticmethod
     def catchError(eid):
-        # print 'Error %d:' % eid
+        # print('Error %d:' % eid)
         pass
 
 
@@ -78,7 +78,7 @@ class MainWindow(QtWebKitWidgets.QWebView):
     @staticmethod
     def getUrl():
         if len(sys.argv) != 2:
-            print "Enter url as secondary argument"
+            print("Enter url as secondary argument")
             sys.exit(-1)
         return sys.argv[1]
 
