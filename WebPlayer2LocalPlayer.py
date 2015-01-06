@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import urlparse
 import sys
 import os
 import re
@@ -32,6 +33,8 @@ class QNetworkAccessManager(QtNetwork.QNetworkAccessManager):
         if operation == self.GetOperation:
             self.request = request
 
+            sys.stderr.write("%s\n" % self.getUrl())
+
             for regexp in FORBIDDEN_REGEXP:
                 if re.match(regexp, self.getUrl()):
                     self.interruptRequest()
@@ -44,7 +47,8 @@ class QNetworkAccessManager(QtNetwork.QNetworkAccessManager):
                 self.interruptRequest()
 
     def getExt(self):
-        return self.getUrl().split(".")[-1]
+        result = urlparse.urlparse(self.getUrl())
+        return result.path.split(".")[-1]
 
     def getUrl(self):
         return self.request.url().toString()
