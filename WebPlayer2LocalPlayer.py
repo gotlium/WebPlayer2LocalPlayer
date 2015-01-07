@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+__author__ = 'gotlium'
+__version__ = '1.0'
+
 import urlparse
 import signal
 import sys
@@ -160,6 +163,7 @@ class MainWindow(QtWebKitWidgets.QWebView):
 if __name__ == '__main__':
     app = QtWidgets.QApplication([])
     app.setApplicationName(APP_NAME)
+    app.setAttribute(QtCore.Qt.AA_UseHighDpiPixmaps)
 
     main = MainWindow()
     main.setSettings()
