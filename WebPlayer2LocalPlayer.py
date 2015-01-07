@@ -4,14 +4,18 @@
 __author__ = 'gotlium'
 __version__ = '1.0'
 
-import urlparse
 import signal
 import sys
 import os
 import re
 
-from PyQt5 import QtCore, QtWebKitWidgets, QtWidgets, QtNetwork
+from PyQt5 import QtCore, QtGui, QtWebKitWidgets, QtWidgets, QtNetwork
 from PyQt5.QtWebKit import QWebSettings
+
+try:
+    from urllib.parse import urlparse
+except ImportError:
+    from urlparse import urlparse
 
 APP_NAME = "WebPlayer2LocalPlayer"
 VIDEO_EXT = ["mp4", "flv"]
@@ -41,9 +45,13 @@ class UrlDialog(QtWidgets.QDialog):
         layout.addWidget(self.button)
 
         self.setLayout(layout)
-
+    
     def openUrl(self):
         self.close()
+    
+    def getUrl(self):
+        return dialog.url.text().strip()
+
 
 
 class ActionDialog(QtWidgets.QDialog):
@@ -112,7 +120,7 @@ class QNetworkAccessManager(QtNetwork.QNetworkAccessManager):
                 self.interruptRequest()
 
     def getExt(self):
-        result = urlparse.urlparse(self.getUrl())
+        result = urlparse(self.getUrl())
         return result.path.split(".")[-1]
 
     def getUrl(self):
@@ -149,7 +157,9 @@ class MainWindow(QtWebKitWidgets.QWebView):
         if len(sys.argv) != 2:
             dialog = UrlDialog()
             dialog.exec_()
-            return dialog.url.text()
+            if dialog.getUrl() == 'http://':
+                sys.exit(0)
+            return dialog.getUrl()
         return sys.argv[1]
 
     @staticmethod
@@ -164,6 +174,7 @@ if __name__ == '__main__':
     app = QtWidgets.QApplication([])
     app.setApplicationName(APP_NAME)
     app.setAttribute(QtCore.Qt.AA_UseHighDpiPixmaps)
+    # app.setWindowIcon(QtGui.QIcon('images/app_icon.png'))
 
     main = MainWindow()
     main.setSettings()
