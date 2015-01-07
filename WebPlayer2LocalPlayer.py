@@ -174,7 +174,7 @@ if __name__ == '__main__':
     app = QtWidgets.QApplication([])
     app.setApplicationName(APP_NAME)
     app.setAttribute(QtCore.Qt.AA_UseHighDpiPixmaps)
-    # app.setWindowIcon(QtGui.QIcon('images/app_icon.png'))
+    app.setWindowIcon(QtGui.QIcon('images/app_icon.png'))
 
     main = MainWindow()
     main.setSettings()
