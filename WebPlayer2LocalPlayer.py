@@ -26,6 +26,34 @@ OPEN_CMD = "open -a VLC '%s'"
 DOWNLOAD_CMD = "open -a 'Folx 3' '%s'"
 
 
+class QNetworkCookieJar(QtNetwork.QNetworkCookieJar):
+    def __init__(self, parent=None):
+        super(QNetworkCookieJar, self).__init__(parent)
+        self.cookie_path = os.path.expanduser("~/.wp2lp.cookie")
+
+    def saveCookies(self):
+        all_cookies = QtNetwork.QNetworkCookieJar.allCookies(self)
+
+        cookie_dir = os.path.dirname(self.cookie_path)
+        if not os.path.exists(cookie_dir):
+            os.makedirs(cookie_dir)
+
+        with open(self.cookie_path, 'w') as f:
+            lines = ''
+            for cookie in all_cookies:
+                lines += '%s\r\n' % cookie.toRawForm()
+            f.writelines(lines)
+
+    def restoreCookies(self):
+        if os.path.exists(self.cookie_path):
+            with open(self.cookie_path, 'r') as f:
+                lines = ''
+                for line in f:
+                    lines += line
+                all_cookies = QtNetwork.QNetworkCookie.parseCookies(lines)
+                QtNetwork.QNetworkCookieJar.setAllCookies(self, all_cookies)
+
+
 class UrlDialog(QtWidgets.QDialog):
     def __init__(self, *args, **kwargs):
         super(UrlDialog, self).__init__(*args, **kwargs)
@@ -50,8 +78,7 @@ class UrlDialog(QtWidgets.QDialog):
         self.close()
     
     def getUrl(self):
-        return dialog.url.text().strip()
-
+        return self.url.text().strip()
 
 
 class ActionDialog(QtWidgets.QDialog):
@@ -145,11 +172,16 @@ class MainWindow(QtWebKitWidgets.QWebView):
         super(MainWindow, self).__init__()
         self.setWindowTitle(APP_NAME)
         self.setPage(QtWebKitWidgets.QWebPage())
+
+        self.cookie_jar = QNetworkCookieJar()
+        self.cookie_jar.restoreCookies()
+
         self.showWebView(self.getUrl())
         self.showMaximized()
 
     def showWebView(self, url):
         self.page().setNetworkAccessManager(QNetworkAccessManager())
+        self.page().networkAccessManager().setCookieJar(self.cookie_jar)
         self.load(QtCore.QUrl(url))
 
     @staticmethod
@@ -168,6 +200,11 @@ class MainWindow(QtWebKitWidgets.QWebView):
         settings.setAttribute(QWebSettings.AutoLoadImages, True)
         settings.setAttribute(QWebSettings.JavascriptCanOpenWindows, True)
         settings.setAttribute(QWebSettings.PluginsEnabled, True)
+        settings.setAttribute(QWebSettings.JavascriptCanOpenWindows, True)
+
+    def closeEvent(self, event):
+        self.cookie_jar.saveCookies()
+        event.accept()
 
 
 if __name__ == '__main__':
